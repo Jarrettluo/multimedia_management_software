@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>754</width>
-    <height>527</height>
+    <width>1105</width>
+    <height>844</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,13 +26,13 @@
     <property name="title">
      <string>控制面板</string>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
        <y>21</y>
        <width>711</width>
-       <height>101</height>
+       <height>102</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout">
@@ -116,7 +116,7 @@
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -260,13 +260,39 @@
      </item>
     </layout>
    </widget>
+   <widget class="QLabel" name="label_9">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>510</y>
+      <width>300</width>
+      <height>200</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_10">
+    <property name="geometry">
+     <rect>
+      <x>500</x>
+      <y>510</y>
+      <width>300</width>
+      <height>200</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>754</width>
+     <width>1105</width>
      <height>23</height>
     </rect>
    </property>
