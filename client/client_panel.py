@@ -7,7 +7,9 @@
 """
 import datetime
 import os
+import socket
 import sys
+import threading
 import time
 
 """
@@ -16,7 +18,7 @@ import time
 """
 if hasattr(sys, 'frozen'):
     os.environ['PATH'] = sys._MEIPASS + ";" + os.environ['PATH']
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QCursor
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QMainWindow, QApplication, QLabel, QMenu, QAction, QTreeWidgetItem, QHeaderView, QDirModel, \
@@ -25,6 +27,11 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QLabel, QMenu, QAction, Q
 INITIAL_HOST = '20.20.20'
 INITIAL_PORT = '444'
 
+buffsize=1024
+socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+host = "127.0.0.1"
+port = 9999
+socket_server.connect_ex((host, port))
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -46,6 +53,30 @@ class MainWindow(QMainWindow):
         self.pushButton_2.clicked.connect(self.send_file)  # 点击发送文件的操作
         self.pushButton_3.clicked.connect(self.hands_up)  # 学生举手操作
 
+        # # 创建一个socket对象
+        # client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #
+        # host = "127.0.0.1"
+        # port = 9999
+        # # 连接服务端
+        # rec_code = client.connect_ex((host, port))
+        # print(rec_code)
+
+        # connect_ex函数执行成功返回0，失败返回非0
+        # if rec_code == 0:
+        #     print('hjkhkhk')
+            # send_msg = "username: 151s, admin: 115s, command: 15s"
+            # client.send(send_msg.encode("utf-8"))
+            # time.sleep(0.5)
+            # recdata = sockethandle.recv(65535)
+            # tran_recdata = recdata.decode('utf-8')
+            # print(tran_recdata)
+
+        # 10061 – Connection refused //连接被拒绝
+
+        self.check_thread = Client([1])  # 多线程去获取
+        self.check_thread.signal.connect(self.tcp_callback)
+        self.check_thread.start()  # 启动线程
 
     def connect_server(self):
         self.server_host = self.lineEdit.text()  # 用户输入的主机地址
@@ -85,6 +116,40 @@ class MainWindow(QMainWindow):
         # TODO 这里应该设置多线程后台连接，设置超时10次
         self.textBrowser.append(current_time + ": 举手一次")
 
+        msg = "这是举手信息"
+        socket_server.send(msg.encode())
+
+    # 回调函数
+    def tcp_callback(self, value):
+        msg = eval(value[0])
+        broadcast = msg.get('broadcast')
+        reboot = msg.get('reboot')
+        turn_off = msg.get('turn_off')
+        current_time = NowTime().now_time()
+        if broadcast:
+            self.textBrowser.append(current_time + "  老师广播:" + str(broadcast))
+        elif reboot:
+            self.textBrowser.append(current_time + "  老师重启计算机！")
+        elif turn_off:
+            self.textBrowser.append(current_time + "  老师关闭计算机！")
+
+
+
+class Client(QThread):
+    signal = pyqtSignal(list)  # 括号里填写信号传递的参数
+
+    def __init__(self, args_list):
+        super().__init__()
+        self.args_data = args_list
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        while True:
+            recvdata = socket_server.recv(buffsize).decode('utf-8')
+            value = [recvdata]
+            self.signal.emit(value)  # 发射信号
 
 
 
@@ -110,3 +175,5 @@ if __name__ == '__main__':
     window.setStyleSheet(qss_style)
     window.show()
     sys.exit(app.exec_())
+
+
