@@ -24,19 +24,21 @@ class AutoPollScreen(QThread):
         self.wait()
 
     def run(self):
-        # 进行任务操作
-        url = "http://192.168.124.6:8008/"
-        try:
-            res = requests.get(url, timeout=1)
-        except requests.exceptions.Timeout as err:
-            value = []
-            print(err)
-        else:
-            if res.status_code == 200:
-                img = QImage.fromData(res.content)
-                image = QPixmap.fromImage(img)
-                image = image.scaled(300, 200)
-                value = [image]
+        value = []
+        # 进行任务操作, 遍历所有学生端的屏幕
+        for client in self.args_data:
+            client_url = "http://" + client['stu_addr'] + ":8008/"
+            try:
+                res = requests.get(client_url, timeout=1)
+            except requests.exceptions.Timeout as err:
+                image = None
+                print(err)
             else:
-                value = []
+                if res.status_code == 200:
+                    img = QImage.fromData(res.content)
+                    image = QPixmap.fromImage(img)
+                    image = image.scaled(300, 200)
+                else:
+                    image = None
+            value.append(image)
         self.signal.emit(value)  # 发射信号

@@ -143,7 +143,7 @@
      </property>
     </widget>
    </widget>
-   <widget class="QLabel" name="label_9">
+   <widget class="QLabel" name="video_2">
     <property name="geometry">
      <rect>
       <x>320</x>
@@ -156,7 +156,7 @@
      <string>TextLabel</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_10">
+   <widget class="QLabel" name="video_3">
     <property name="geometry">
      <rect>
       <x>630</x>
@@ -169,7 +169,7 @@
      <string>TextLabel</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_11">
+   <widget class="QLabel" name="video_1">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -330,7 +330,7 @@
      <string>查看</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_12">
+   <widget class="QLabel" name="video_4">
     <property name="enabled">
      <bool>true</bool>
     </property>
@@ -352,7 +352,7 @@
      <string>TextLabel</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_16">
+   <widget class="QLabel" name="video_8">
     <property name="geometry">
      <rect>
       <x>320</x>
@@ -365,7 +365,7 @@
      <string>TextLabel</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_14">
+   <widget class="QLabel" name="video_6">
     <property name="geometry">
      <rect>
       <x>630</x>
@@ -378,7 +378,7 @@
      <string>TextLabel</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_15">
+   <widget class="QLabel" name="video_7">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -391,7 +391,7 @@
      <string>TextLabel</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_13">
+   <widget class="QLabel" name="video_5">
     <property name="geometry">
      <rect>
       <x>320</x>
@@ -404,7 +404,7 @@
      <string>TextLabel</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_17">
+   <widget class="QLabel" name="video_9">
     <property name="geometry">
      <rect>
       <x>630</x>
