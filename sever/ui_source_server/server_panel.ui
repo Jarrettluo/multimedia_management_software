@@ -182,7 +182,7 @@
      <string>TextLabel</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_6">
+   <widget class="QPushButton" name="pushButtonClient_1">
     <property name="geometry">
      <rect>
       <x>100</x>
@@ -195,7 +195,7 @@
      <string>查看</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_7">
+   <widget class="QPushButton" name="pushButtonClient_2">
     <property name="geometry">
      <rect>
       <x>410</x>
@@ -208,7 +208,7 @@
      <string>查看</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_8">
+   <widget class="QPushButton" name="pushButtonClient_3">
     <property name="geometry">
      <rect>
       <x>720</x>
@@ -237,10 +237,10 @@
      </rect>
     </property>
     <property name="text">
-     <string>129.12.122.2：88</string>
+     <string/>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_9">
+   <widget class="QPushButton" name="pushButtonClient_4">
     <property name="geometry">
      <rect>
       <x>100</x>
@@ -253,7 +253,7 @@
      <string>查看</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_10">
+   <widget class="QPushButton" name="pushButtonClient_5">
     <property name="geometry">
      <rect>
       <x>410</x>
@@ -272,7 +272,7 @@
      </size>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_11">
+   <widget class="QPushButton" name="pushButtonClient_6">
     <property name="geometry">
      <rect>
       <x>720</x>
@@ -285,7 +285,7 @@
      <string>查看</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_12">
+   <widget class="QPushButton" name="pushButtonClient_7">
     <property name="geometry">
      <rect>
       <x>100</x>
@@ -298,7 +298,7 @@
      <string>查看</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_13">
+   <widget class="QPushButton" name="pushButtonClient_8">
     <property name="geometry">
      <rect>
       <x>410</x>
@@ -317,7 +317,7 @@
      </size>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_14">
+   <widget class="QPushButton" name="pushButtonClient_9">
     <property name="geometry">
      <rect>
       <x>720</x>

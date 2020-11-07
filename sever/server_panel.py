@@ -60,19 +60,6 @@ class MainWindow(QMainWindow):
         self.textBrowser.append("" + current_time + "\n"
                                 + "学生端输入本机ip：" + host + " 本机端口：" + str(port))
 
-        icon = QIcon()
-
-        icon.addPixmap(QPixmap("logo.png"), QIcon.Normal, QIcon.Off)
-        self.pushButton.setIcon(icon)
-        self.pushButton.setIconSize(QSize(20, 20))
-        self.pushButton.setAutoRepeatDelay(200)
-
-        # Spining icon widget
-        spin_widget = qta.IconWidget()
-        spin_icon = qta.icon('mdi.loading', color='red',
-                             animation=qta.Spin(spin_widget))
-        self.pushButton_2.setIcon(spin_icon)
-
         icon_info = qta.icon('fa5s.info-circle', color='white')
         icon_reboot = qta.icon('fa5s.redo', color='white')
         icon_power_off = qta.icon('fa5s.power-off', color='white')
@@ -84,12 +71,16 @@ class MainWindow(QMainWindow):
         self.pushButton_3.setIcon(icon_lock)
         self.pushButton_4.setIcon(icon_broadcast)
 
+        for i in range(9):
+            client_button = 'self.pushButtonClient_' + str(i+1)
+            eval(client_button).clicked.connect(self.child_window)
 
-        self.pushButton_6.clicked.connect(self.childwindow)
-
-    def childwindow(self):
-        if students:
-            self.child = Child(students)  # 创建子窗口实例
+    def child_window(self):
+        sender = self.sender()
+        button_client = sender.objectName()
+        client_num = int(button_client.split('_')[1])
+        if not client_num > len(students):
+            self.child = Child(students[client_num-1])  # 创建子窗口实例
             self.child.exec()
         else:
             pass
@@ -111,15 +102,9 @@ class MainWindow(QMainWindow):
         self.pushButton_4.clicked.connect(self.broadcast)  # 广播操作
         img_path = "ui_source_server/no_data.png"  # 图片路径
         image = QPixmap(img_path).scaled(300, 180)  # 加载图片,并自定义图片展示尺寸
-        self.video_1.setPixmap(image)  # 显示图片
-        self.video_2.setPixmap(image)
-        self.video_3.setPixmap(image)
-        self.video_4.setPixmap(image)
-        self.video_5.setPixmap(image)
-        self.video_6.setPixmap(image)
-        self.video_7.setPixmap(image)
-        self.video_8.setPixmap(image)
-        self.video_9.setPixmap(image)
+        for i in range(9):
+            video = 'self.video_' + str(i+1)
+            eval(video).setPixmap(image)  # 显示图片
 
     def setup_ui(self):
         """
@@ -229,7 +214,6 @@ class MainWindow(QMainWindow):
                         break
                 self.setup_ui()  # 开启记时
                 self.update_clients()  # 更新
-
             elif receive_msg:
                 receive_msg = eval(receive_msg)
                 stu_name = receive_msg.get('stu_name')
@@ -281,7 +265,6 @@ class MainWindow(QMainWindow):
         broadcast_content = self.plainTextEdit.toPlainText()
         if broadcast_content and conn_list:
             current_time = NowTime().now_time()
-            # TODO 这里应该设置多线程后台连接，设置超时10次
             self.textBrowser.append("<font color='red'>" + current_time + " 广播\n"
                                     + broadcast_content + "</font>")
             send_msg = {'broadcast': broadcast_content}
@@ -347,9 +330,10 @@ class TcpLink(QThread):
             try:
                 recvdata = sock.recv(buffsize).decode('utf-8')  # 接收数据
                 receive_json = eval(recvdata)
-                filename = receive_json.get('filename')
+                filename = receive_json.get('filename') # 判断发送来的信息是否是文件
                 if filename:
-                    content = sock.recv(1024)
+                    # 如果是文件，那么接下来准备接收文件，这里用于限定接收的文件大小
+                    content = sock.recv(receive_json.get('filesize'))
                     callback_info.pop('receive_msg')  # 丢掉该键对
                     callback_info['stu_file'] = content
                     callback_info['stu_filename'] = filename
@@ -378,43 +362,36 @@ class TcpLink(QThread):
 
 class Child(QDialog):
     """
-    子窗口，未完工。
+    查看客户端详情页。
     """
     def __init__(self, label, parent=None):
         super().__init__(parent)
-        self.students = label
+        self.student = label
         self.initUI()
 
     def initUI(self):
         loadUi("ui_source_server/child_panel.ui", self)
         self.setWindowTitle("多媒体管理软件 -樱桃智库" )  # 设置窗口标题
-        # aa = self.students[0]
-        # self.label.setText(str(aa))
         self.pushButton_quit.clicked.connect(self.quit)  # 点击ok，隐士存在该方法
-        # self.buttonBox.rejected.connect(self.reject)  # 点击cancel，该方法默认隐士存在
 
         self.timer = QTimer(self)  # 初始化一个定时器
-        if students:
+        if self.student:
             self.timer.timeout.connect(self.get_client_screen)  # 每次计时到时间时发出信号
             self.timer.start(600)  # 设置计时间隔并启动；单位毫秒
         else:
             pass
 
     def get_client_screen(self):
-        # print(students)
-        students = self.students
-        self._thread = AutoPollScreen(students)  # 多线程去获取
+        self._thread = AutoPollScreen([self.student])  # 多线程去获取
         self._thread.signal.connect(self.screen_callback)
         self._thread.start()  # 启动线程
 
     def screen_callback(self, videos):
-        video = videos[0]
-        video = video.scaled(1200, 800)
+        video = videos[0].scaled(1200, 800)
         self.label.setPixmap(video)
 
     def quit(self):  # 点击ok是发送内置信号
         self.timer.stop()
-        # self.destroy()
         self.close()
 
 
