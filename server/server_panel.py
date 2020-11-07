@@ -13,8 +13,8 @@ import sys
 import threading
 import time
 import qtawesome as qta
-from sever.get_client_screen import AutoPollScreen
-from sever.system_time import NowTime
+from server.get_client_screen import AutoPollScreen
+from server.system_time import NowTime
 
 """
 以下引用是由于使用PyInstaller进行软件打包时出现bug。
