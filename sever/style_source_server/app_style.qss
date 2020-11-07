@@ -2,23 +2,76 @@
     border:1px solid #ffffff;
     background-color: #ffffff;
 }
-#pushButton_new, #pushButton_save, #pushButton_start, #pushButton_export{
-    background-color:rgb(0,0,0,0);
-    border:0px;
-
+QPushButton, #pushButton_new, #pushButton_save, #pushButton_start, #pushButton_export{
+background-color: #66b1ff;
+color: #ffffff;
+font-size:16px;
+border-radius: 5px;
+font-family:'微软雅黑';
 }
 
-#pushButton_new:hover, #pushButton_save:hover, #pushButton_start:hover, #pushButton_export:hover{
+QPushButton:hover, #pushButton_new:hover, #pushButton_save:hover, #pushButton_start:hover, #pushButton_export:hover{
     background-color:rgb(142, 229, 238, 0.2);
+    background-color: #3a8ee6;
     border:1px solid rgb(135, 206, 235, 0.4);
 
 }
 
-#pushButton_new:pressed, #pushButton_save:pressed, #pushButton_start:pressed, #pushButton_export:pressed{
+QPushButton:pressed, #pushButton_new:pressed, #pushButton_save:pressed, #pushButton_start:pressed, #pushButton_export:pressed{
     background-color:rgb(135, 206, 235, 0.4);
+    background-color: #3a8ee6;
     padding:2px 0px 0px 2px;
 }
+QPushButton:disabled{
+    background-color: #a0cfff;
+}
 
+
+QComboBox{
+    font-family:"Microsoft YaHei";
+    border:1px;
+    border-color:#66b1ff;
+    border-radius:4px;
+    background: #ffffff;
+    font:14px;
+    color:#1f2f3d;
+    height: 32px;
+   }
+QComboBox QAbstractItemView{
+    border: 0px;
+    outline:0px;
+    selection-background-color: #f5f7fa;
+    height:100px;
+    background: #ffffff;
+    color:#606266;
+    font-size:12px;
+    }
+QComboBox QAbstractItemView::item{
+    height:30px;
+}
+QComboBox QAbstractItemView::item:hover{
+    background-color: #f5f7fa;
+    color:#66b1ff;
+    }
+QComboBox QAbstractItemView::item:selected{
+    background-color: #f5f7fa;
+    color:#409eff;
+    }
+QComboBox::down-arrow{
+    image:url(ui_source_server/arrow.png);}
+QComboBox::drop-down{
+    border:0px;
+}
+
+QTextBrowser{
+    font:"Microsoft YaHei";
+    font-size:14px;
+}
+
+QPlainTextEdit{
+    font:"Microsoft YaHei";
+    font-size:14px;
+}
 
 #treeWidget{
     border:none;

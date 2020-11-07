@@ -37,7 +37,6 @@ class AutoPollScreen(QThread):
                 if res.status_code == 200:
                     img = QImage.fromData(res.content)
                     image = QPixmap.fromImage(img)
-                    image = image.scaled(300, 200)
                 else:
                     image = None
             value.append(image)

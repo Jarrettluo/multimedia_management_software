@@ -14,6 +14,9 @@ import struct
 import sys
 import threading
 import time
+import psutil
+from client.control_device import *
+import configparser
 
 """
 以下引用是由于使用PyInstaller进行软件打包时出现bug。
@@ -30,8 +33,7 @@ from client.screen_monitor import MonitorScreen
 
 buffsize = 1024
 socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host = "127.0.0.1"
-port = 9999
+CONFIG_FILE = 'config.ini'
 
 
 class MainWindow(QMainWindow):
@@ -43,15 +45,15 @@ class MainWindow(QMainWindow):
         self.stu_file = ''  # 学生文件为空
         self.file_name = ''  # 准备上传的文件名
 
-        self.server_host = self.lineEdit.text()  # 用户输入的主机地址
-        self.server_port = self.lineEdit_2.text()  # 用户输入的主机端口
         self.pushButton.clicked.connect(self.connect_server)  # 点击链接服务器的操作
         self.toolButton.clicked.connect(self.file_dialog)  # 点击选择文件的操作
         self.pushButton_2.clicked.connect(self.send_file)  # 点击发送文件的操作
         self.pushButton_3.clicked.connect(self.hands_up)  # 学生举手操作
 
-        self.ip_init_lst = ['127.0.0.1', '192.168.1.1', '172.16.1.1']
-        self.port_init_lst = ['19869', '8008', '88888']
+        self.con = configparser.ConfigParser()  # 创建配置文件对象
+        self.con.read(CONFIG_FILE, encoding='utf-8')  # 读取文件
+        self.ip_init_lst = eval(self.con.get('server', 'url'))  # 获取所有的url,必须将获取的str转换为列表
+        self.port_init_lst = eval(self.con.get('server', 'port'))  # 获取所有的端口
         self.init_lineedit(self.lineEdit, self.ip_init_lst)  # ip 输入位置自动补全
         self.init_lineedit(self.lineEdit_2, self.port_init_lst)  # port位置自动补全
         ip_regex = QRegExp(
@@ -67,16 +69,19 @@ class MainWindow(QMainWindow):
         :param item_list:
         :return:
         """
-        # 增加自动补全
-        self.completer = QCompleter(item_list)
-        # 设置匹配模式  有三种： Qt.MatchStartsWith 开头匹配（默认）  Qt.MatchContains 内容匹配  Qt.MatchEndsWith 结尾匹配
-        self.completer.setFilterMode(Qt.MatchContains)
-        # 设置补全模式  有三种： QCompleter.PopupCompletion（默认）  QCompleter.InlineCompletion   QCompleter.UnfilteredPopupCompletion
-        self.completer.setCompletionMode(QCompleter.PopupCompletion)
-        # 给lineedit设置补全器
-        lineedit.setCompleter(self.completer)
-        # 设置默认值
-        lineedit.setPlaceholderText(item_list[0])
+        if item_list:
+            # 增加自动补全
+            self.completer = QCompleter(item_list)
+            # 设置匹配模式  有三种： Qt.MatchStartsWith 开头匹配（默认）  Qt.MatchContains 内容匹配  Qt.MatchEndsWith 结尾匹配
+            self.completer.setFilterMode(Qt.MatchContains)
+            # 设置补全模式  有三种： QCompleter.PopupCompletion（默认）  QCompleter.InlineCompletion   QCompleter.UnfilteredPopupCompletion
+            self.completer.setCompletionMode(QCompleter.PopupCompletion)
+            # 给lineedit设置补全器
+            lineedit.setCompleter(self.completer)
+            # 设置默认值
+            lineedit.setText(item_list[0])
+        else:
+            pass
 
     def connect_server(self):
         """
@@ -87,7 +92,6 @@ class MainWindow(QMainWindow):
         self.server_port = self.lineEdit_2.text()  # 用户输入的主机端口,必须转换为整型
         if self.server_host and self.server_port:
             current_time = NowTime().now_time()
-
             # TODO 这里应该设置多线程后台连接，设置超时10次
             self.textBrowser.append("" + current_time + ": 正在连接"
                                     + self.server_host + ":" + self.server_port)
@@ -101,12 +105,11 @@ class MainWindow(QMainWindow):
                 self.screen_thread = MonitorScreen([1])  # 多线程去获取
                 self.screen_thread.signal.connect(self.screen_callback)
                 self.screen_thread.start()  # 启动线程
-
                 # 给服务器发送给本机名和ip
                 send_client_ip(socket_server)
+                self.update_config()
             else:
                 self.textBrowser.append("连接失败！")
-
         else:
             pass
 
@@ -116,10 +119,8 @@ class MainWindow(QMainWindow):
                                                          "Text Files ();;All Files (*)")  # 设置文件扩展名过滤,注意用双分号间隔
         if filepath:
             self.stu_file = copy.deepcopy(filepath)
-            print(self.stu_file)
             self.file_name = filepath.split('/')[-1]
             self.lineEdit_3.setText(self.file_name)
-
         else:
             pass
 
@@ -162,10 +163,14 @@ class MainWindow(QMainWindow):
             self.textBrowser.append(current_time + "  老师广播:" + str(broadcast))
         elif reboot:
             self.textBrowser.append(current_time + "  老师重启计算机！")
+            command_reboot_device()  # 重启计算机
         elif turn_off:
             self.textBrowser.append(current_time + "  老师关闭计算机！")
+            command_turn_off()  # 关闭计算机
         elif lock_screen:
             self.textBrowser.append(current_time + "  老师锁定计算机！")
+            command_lock_screen()  # 锁屏
+            sys.exit()  # 退出客户端程序
 
     def screen_callback(self, value):
         """
@@ -175,6 +180,30 @@ class MainWindow(QMainWindow):
         """
         print(value)
         # 这里没有回调！
+
+    def update_config(self):
+        """
+        如果新增加url和端口则写入配置文件中
+        :return:
+        """
+        if self.server_host not in self.ip_init_lst:
+            self.ip_init_lst.insert(0, self.server_host)  # url第一个位置插入
+            # 写入配置文件
+            self.con.set('server', 'url', str(self.ip_init_lst))
+            # write to file
+            with open(CONFIG_FILE, "w+") as f:
+                self.con.write(f)
+        else:
+            pass
+        if self.server_port not in self.port_init_lst:
+            self.port_init_lst.insert(0, self.server_port)
+            # 写入配置文件
+            self.con.set('server', 'port', str(self.port_init_lst))
+            # write to file
+            with open(CONFIG_FILE, "w+") as f:
+                self.con.write(f)
+        else:
+            pass
 
 
 def send_client_ip(socket_server):
@@ -189,6 +218,19 @@ def send_client_ip(socket_server):
     myaddr = socket.gethostbyname(myname)
     msg = {'stu_name': myname, 'stu_addr': myaddr}
     socket_server.send(str(msg).encode())
+
+
+def gather_device_data():
+    """
+    采集设备信息
+    :return:
+    """
+    # 内存占比
+    psutil.virtual_memory().percent
+    # 系统的CPU利用率
+    psutil.cpu_percent(interval=20, percpu=False)
+    # 核心数
+    psutil.cpu_count(logical=False)
 
 
 class Client(QThread):

@@ -12,7 +12,7 @@ import struct
 import sys
 import threading
 import time
-
+import qtawesome as qta
 from sever.get_client_screen import AutoPollScreen
 from sever.system_time import NowTime
 
@@ -22,11 +22,12 @@ from sever.system_time import NowTime
 """
 if hasattr(sys, 'frozen'):
     os.environ['PATH'] = sys._MEIPASS + ";" + os.environ['PATH']
-from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal, QSize
 from PyQt5.QtGui import QIcon, QCursor, QImage, QPixmap
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QMainWindow, QApplication, QLabel, QMenu, QAction, QTreeWidgetItem, QHeaderView, QDirModel, \
-    QTreeView, QFileDialog, QTableWidgetItem, QGraphicsPixmapItem, QGraphicsScene
+    QTreeView, QFileDialog, QTableWidgetItem, QGraphicsPixmapItem, QGraphicsScene, QDialogButtonBox, QVBoxLayout, \
+    QDialog, QWidget, QMessageBox, QHBoxLayout, QPushButton
 
 buffsize = 1024
 socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -58,6 +59,40 @@ class MainWindow(QMainWindow):
         current_time = NowTime().now_time()
         self.textBrowser.append("" + current_time + "\n"
                                 + "学生端输入本机ip：" + host + " 本机端口：" + str(port))
+
+        icon = QIcon()
+
+        icon.addPixmap(QPixmap("logo.png"), QIcon.Normal, QIcon.Off)
+        self.pushButton.setIcon(icon)
+        self.pushButton.setIconSize(QSize(20, 20))
+        self.pushButton.setAutoRepeatDelay(200)
+
+        # Spining icon widget
+        spin_widget = qta.IconWidget()
+        spin_icon = qta.icon('mdi.loading', color='red',
+                             animation=qta.Spin(spin_widget))
+        self.pushButton_2.setIcon(spin_icon)
+
+        icon_info = qta.icon('fa5s.info-circle', color='white')
+        icon_reboot = qta.icon('fa5s.redo', color='white')
+        icon_power_off = qta.icon('fa5s.power-off', color='white')
+        icon_lock = qta.icon('fa5s.lock', color='white')
+        icon_broadcast = qta.icon('fa5s.bullhorn', color='white')
+        self.pushButton_5.setIcon(icon_info)
+        self.pushButton.setIcon(icon_reboot)
+        self.pushButton_2.setIcon(icon_power_off)
+        self.pushButton_3.setIcon(icon_lock)
+        self.pushButton_4.setIcon(icon_broadcast)
+
+
+        self.pushButton_6.clicked.connect(self.childwindow)
+
+    def childwindow(self):
+        if students:
+            self.child = Child(students)  # 创建子窗口实例
+            self.child.exec()
+        else:
+            pass
 
     def window_initial(self):
         if self.clients_list:
@@ -101,8 +136,9 @@ class MainWindow(QMainWindow):
     def choose_client(self, i):
         self.current_client = self.comboBox.currentText()
         now_client = str(self.current_client)
-        current_time = NowTime().now_time()
-        self.textBrowser.append("" + current_time + "\n连接" + now_client)
+        if now_client:
+            current_time = NowTime().now_time()
+            self.textBrowser.append("<font color='black'>" + current_time + "\n连接" + now_client + "</font>")
         self.pushButton_5.setEnabled(True)
         self.pushButton.setEnabled(True)
         self.pushButton_2.setEnabled(True)
@@ -113,7 +149,7 @@ class MainWindow(QMainWindow):
         send_msg = {'device_info': True}
         self.control_client(send_msg)
         current_time = NowTime().now_time()
-        self.textBrowser.append("" + current_time + "\n" + "查看设备信息")
+        self.textBrowser.append("<font color='blue'>" + current_time + "\n" + "查看设备信息</font>")
 
     def reboot_device(self):
         """
@@ -123,7 +159,7 @@ class MainWindow(QMainWindow):
         send_msg = {'reboot': True}
         self.control_client(send_msg)
         current_time = NowTime().now_time()
-        self.textBrowser.append("" + current_time + "\n" + "重启设备")
+        self.textBrowser.append("<font color='blue'>" + current_time + "\n" + "重启设备</font>")
 
     def close_device(self):
         """
@@ -133,7 +169,7 @@ class MainWindow(QMainWindow):
         send_msg = {'turn_off': True}
         self.control_client(send_msg)
         current_time = NowTime().now_time()
-        self.textBrowser.append("" + current_time + "\n" + "关闭设备")
+        self.textBrowser.append("<font color='blue'>" + current_time + "\n" + "关闭设备</font>")
 
     def get_client_screen(self):
         self.check_thread = AutoPollScreen(students)  # 多线程去获取
@@ -149,6 +185,7 @@ class MainWindow(QMainWindow):
         """
         if videos:
             for i, video in enumerate(videos):
+                video = video.scaled(300, 200)
                 if i > 9:
                     break
                 eval('self.video_' + str(i + 1)).setPixmap(video)
@@ -180,8 +217,8 @@ class MainWindow(QMainWindow):
             if offline:
                 client_name = client_addr[0] + ':' + str(client_addr[1])
                 current_time = NowTime().now_time()
-                self.textBrowser.append("" + current_time + "\n"
-                                        + client_name + "已经掉线！")
+                self.textBrowser.append("<font color='red'>" + current_time + "\n"
+                                        + client_name + "已经掉线！</font>")
                 print("已经掉线")
                 self.timer.stop()  # 停掉计时器
                 # 掉线以后应该及时将students清掉！
@@ -207,8 +244,8 @@ class MainWindow(QMainWindow):
                     client_name = client_addr[0] + ':' + str(client_addr[1])
                     current_time = NowTime().now_time()
                     # TODO 这里应该设置多线程后台连接，设置超时10次
-                    self.textBrowser.append("" + current_time + "\n"
-                                            + client_name + " 举手一次")
+                    self.textBrowser.append("<font color='red'>" + current_time + "\n"
+                                            + client_name + " 举手一次</font>")
             elif stu_file:
                 receive_data = value[0]
                 stu_address = receive_data['client_addr']
@@ -217,14 +254,14 @@ class MainWindow(QMainWindow):
                 with open("./received_files/" + filename, 'wb') as f:
                     f.write(content)
                 current_time = NowTime().now_time()
-                self.textBrowser.append("" + current_time + "\n"
-                                        + "收到文件" + filename + ",并保存成功！")
+                self.textBrowser.append(
+                    "<font color='Orange'>" + current_time + "\n" + "收到文件" + filename + ",并保存成功！</font>")
 
     def lock_screen(self):
         send_msg = {'lock_screen': True}
         self.control_client(send_msg)
         current_time = NowTime().now_time()
-        self.textBrowser.append("" + current_time + "\n" + "锁定计算机")
+        self.textBrowser.append("<font color='blue'>" + current_time + "\n" + "锁定计算机</font>")
 
     def control_client(self, command):
         """
@@ -245,8 +282,8 @@ class MainWindow(QMainWindow):
         if broadcast_content and conn_list:
             current_time = NowTime().now_time()
             # TODO 这里应该设置多线程后台连接，设置超时10次
-            self.textBrowser.append("" + current_time + " 广播\n"
-                                    + broadcast_content)
+            self.textBrowser.append("<font color='red'>" + current_time + " 广播\n"
+                                    + broadcast_content + "</font>")
             send_msg = {'broadcast': broadcast_content}
             for client in conn_list:
                 try:
@@ -336,6 +373,51 @@ class TcpLink(QThread):
                 callback_info['offline'] = addr
                 self.signal.emit([callback_info])  # 发射信号
                 break
+
+
+
+class Child(QDialog):
+    """
+    子窗口，未完工。
+    """
+    def __init__(self, label, parent=None):
+        super().__init__(parent)
+        self.students = label
+        self.initUI()
+
+    def initUI(self):
+        loadUi("ui_source_server/child_panel.ui", self)
+        self.setWindowTitle("多媒体管理软件 -樱桃智库" )  # 设置窗口标题
+        # aa = self.students[0]
+        # self.label.setText(str(aa))
+        self.pushButton_quit.clicked.connect(self.quit)  # 点击ok，隐士存在该方法
+        # self.buttonBox.rejected.connect(self.reject)  # 点击cancel，该方法默认隐士存在
+
+        self.timer = QTimer(self)  # 初始化一个定时器
+        if students:
+            self.timer.timeout.connect(self.get_client_screen)  # 每次计时到时间时发出信号
+            self.timer.start(600)  # 设置计时间隔并启动；单位毫秒
+        else:
+            pass
+
+    def get_client_screen(self):
+        # print(students)
+        students = self.students
+        self._thread = AutoPollScreen(students)  # 多线程去获取
+        self._thread.signal.connect(self.screen_callback)
+        self._thread.start()  # 启动线程
+
+    def screen_callback(self, videos):
+        video = videos[0]
+        video = video.scaled(1200, 800)
+        self.label.setPixmap(video)
+
+    def quit(self):  # 点击ok是发送内置信号
+        self.timer.stop()
+        # self.destroy()
+        self.close()
+
+
 
 
 if __name__ == '__main__':
