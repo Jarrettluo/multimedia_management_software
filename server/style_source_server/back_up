@@ -1,0 +1,9 @@
+    background-color: #428bca;
+    border-color: #357ebd;
+    color: #fff;
+    border-radius: 5px; /* future proofing */
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid transparent;
+    font-weight: 900;
+    font-size:125%

@@ -17,7 +17,7 @@ import time
 import psutil
 from client.control_device import *
 import configparser
-
+import qtawesome as qta
 """
 以下引用是由于使用PyInstaller进行软件打包时出现bug。
 参考链接：https://bbs.csdn.net/topics/392428917
@@ -41,9 +41,16 @@ class MainWindow(QMainWindow):
         QMainWindow.__init__(self)
         loadUi("ui_source_client/client_panel.ui", self)  # 加载面板文件，使用qt designer开发
         self.setWindowTitle("学生端控制软件 -樱桃智库")
+        icon_info = qta.icon('fa.envira', color='#1fa831')
+        self.setWindowIcon(icon_info)#设置窗口的图标
+        self.setFixedSize(630, 225)# 设置窗口固定尺寸
 
         self.stu_file = ''  # 学生文件为空
         self.file_name = ''  # 准备上传的文件名
+
+        self.mem_percent = None # 内存百分比
+        self.cpu_count = None   # cpu数量
+        self.cpu_percent = None # cpu百分比
 
         self.pushButton.clicked.connect(self.connect_server)  # 点击链接服务器的操作
         self.toolButton.clicked.connect(self.file_dialog)  # 点击选择文件的操作
@@ -61,6 +68,13 @@ class MainWindow(QMainWindow):
         ip_validator = QRegExpValidator(ip_regex, self.lineEdit)
         self.lineEdit.setValidator(ip_validator)
         self.lineEdit_2.setValidator(QIntValidator())
+
+        self.statusbar.showMessage("软件版本 v0.0.1", 5000)
+
+        # 多线程取设备信息
+        self.device_thread = DeviceInfo([1])  # 多线程去获取
+        self.device_thread.signal.connect(self.device_callback)
+        self.device_thread.start()  # 启动线程
 
     def init_lineedit(self, lineedit, item_list):
         """
@@ -158,6 +172,7 @@ class MainWindow(QMainWindow):
         reboot = msg.get('reboot')
         turn_off = msg.get('turn_off')
         lock_screen = msg.get('lock_screen')
+        device_info = msg.get('device_info')
         current_time = NowTime().now_time()
         if broadcast:
             self.textBrowser.append(current_time + "  老师广播:" + str(broadcast))
@@ -171,6 +186,16 @@ class MainWindow(QMainWindow):
             self.textBrowser.append(current_time + "  老师锁定计算机！")
             command_lock_screen()  # 锁屏
             sys.exit()  # 退出客户端程序
+        elif device_info:
+            print("这是测试的内容！")
+            if self.mem_percent and self.cpu_percent and self.cpu_count:
+                msg = {'mem_percent': str(self.mem_percent)+'%', 'cpu_percent':
+                    str(self.cpu_percent) + '%', 'cpu_count': str(self.cpu_count)}
+                print(msg)
+                socket_server.send(str(msg).encode())
+            else:
+                print("查询失败")
+
 
     def screen_callback(self, value):
         """
@@ -205,6 +230,16 @@ class MainWindow(QMainWindow):
         else:
             pass
 
+    def device_callback(self, value):
+        """
+        查询设备信息的回调函数
+        :param value:
+        :return:
+        """
+        self.mem_percent = value[0]
+        self.cpu_percent = value[1]
+        self.cpu_count = value[2]
+
 
 def send_client_ip(socket_server):
     """
@@ -226,12 +261,12 @@ def gather_device_data():
     :return:
     """
     # 内存占比
-    psutil.virtual_memory().percent
+    mem_percent = psutil.virtual_memory().percent
     # 系统的CPU利用率
-    psutil.cpu_percent(interval=20, percpu=False)
+    cpu_percent = psutil.cpu_percent(interval=20, percpu=False)
     # 核心数
-    psutil.cpu_count(logical=False)
-
+    cpu_count = psutil.cpu_count(logical=False)
+    return mem_percent, cpu_percent, cpu_count
 
 class Client(QThread):
     signal = pyqtSignal(list)  # 括号里填写信号传递的参数
@@ -248,6 +283,20 @@ class Client(QThread):
             recvdata = socket_server.recv(buffsize).decode('utf-8')
             value = [recvdata]
             self.signal.emit(value)  # 发射信号
+
+class DeviceInfo(QThread):
+    signal = pyqtSignal(list)  # 括号里填写信号传递的参数
+
+    def __init__(self, args_list):
+        super().__init__()
+        self.args_data = args_list
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        value = list(gather_device_data())  # 取到设备的信息
+        self.signal.emit(value)  # 发射信号
 
 
 class NowTime():

@@ -47,9 +47,12 @@ class MainWindow(QMainWindow):
         QMainWindow.__init__(self)
         loadUi("ui_source_server/server_panel.ui", self)  # 加载面板文件，使用qt designer开发
         self.setWindowTitle("多媒体管理软件 -樱桃智库")  # 设置窗口标题
+        icon_info = qta.icon('fa5s.chalkboard-teacher', color='#3a8ee6')
+        self.setWindowIcon(icon_info)  # 设置窗口的图标
+        self.setFixedSize(1160, 865)  # 设置窗口固定尺寸
 
         self.clients_list = []
-        self.comboBox.addItems(self.clients_list)
+        self.comboBox.addItems(self.clients_list)  # 为客户端选择框填充项目
         self.window_initial()  # 窗口初始化
 
         self.check_thread = Server([])  # 多线程去获取
@@ -72,15 +75,17 @@ class MainWindow(QMainWindow):
         self.pushButton_4.setIcon(icon_broadcast)
 
         for i in range(9):
-            client_button = 'self.pushButtonClient_' + str(i+1)
+            client_button = 'self.pushButtonClient_' + str(i + 1)
             eval(client_button).clicked.connect(self.child_window)
+
+        self.statusbar.showMessage("软件版本 v0.0.1", 5000)
 
     def child_window(self):
         sender = self.sender()
         button_client = sender.objectName()
         client_num = int(button_client.split('_')[1])
         if not client_num > len(students):
-            self.child = Child(students[client_num-1])  # 创建子窗口实例
+            self.child = Child(students[client_num - 1])  # 创建子窗口实例
             self.child.exec()
         else:
             pass
@@ -103,7 +108,7 @@ class MainWindow(QMainWindow):
         img_path = "ui_source_server/no_data.png"  # 图片路径
         image = QPixmap(img_path).scaled(300, 180)  # 加载图片,并自定义图片展示尺寸
         for i in range(9):
-            video = 'self.video_' + str(i+1)
+            video = 'self.video_' + str(i + 1)
             eval(video).setPixmap(image)  # 显示图片
 
     def setup_ui(self):
@@ -199,6 +204,7 @@ class MainWindow(QMainWindow):
             receive_msg = value[0].get('receive_msg')
             offline = value[0].get('offline')
             stu_file = value[0].get('stu_file')
+
             if offline:
                 client_name = client_addr[0] + ':' + str(client_addr[1])
                 current_time = NowTime().now_time()
@@ -218,12 +224,20 @@ class MainWindow(QMainWindow):
                 receive_msg = eval(receive_msg)
                 stu_name = receive_msg.get('stu_name')
                 stu_addr = receive_msg.get('stu_addr')
+                mem_percent = receive_msg.get('mem_percent')
                 if stu_name and stu_addr:
                     # 如果返回学生端计算名和计算地址
                     student = receive_msg
                     student['client_addr'] = client_addr  #
                     students.append(student)  # 添加到用户列表中
                     self.setup_ui()  # 开启记时
+                elif mem_percent:
+                    mem_percent = receive_msg['mem_percent']
+                    current_time = NowTime().now_time()
+                    self.textBrowser.append(
+                        "<font color='Orange'>" + current_time + "\n" + "设备状态:CPU核心数"
+                        + receive_msg['cpu_count'] + ",CPU占用：" + receive_msg['cpu_percent']
+                        + ",内存占用：" + receive_msg['mem_percent'] + ".</font>")
                 else:
                     client_name = client_addr[0] + ':' + str(client_addr[1])
                     current_time = NowTime().now_time()
@@ -330,7 +344,7 @@ class TcpLink(QThread):
             try:
                 recvdata = sock.recv(buffsize).decode('utf-8')  # 接收数据
                 receive_json = eval(recvdata)
-                filename = receive_json.get('filename') # 判断发送来的信息是否是文件
+                filename = receive_json.get('filename')  # 判断发送来的信息是否是文件
                 if filename:
                     # 如果是文件，那么接下来准备接收文件，这里用于限定接收的文件大小
                     content = sock.recv(receive_json.get('filesize'))
@@ -359,11 +373,11 @@ class TcpLink(QThread):
                 break
 
 
-
 class Child(QDialog):
     """
     查看客户端详情页。
     """
+
     def __init__(self, label, parent=None):
         super().__init__(parent)
         self.student = label
@@ -371,7 +385,10 @@ class Child(QDialog):
 
     def initUI(self):
         loadUi("ui_source_server/child_panel.ui", self)
-        self.setWindowTitle("多媒体管理软件 -樱桃智库" )  # 设置窗口标题
+        self.setWindowTitle("多媒体管理软件 -樱桃智库")  # 设置窗口标题
+        # icon_info = qta.icon('fa5s.chalkboard-teacher', color='#3a8ee6')
+        # self.setWindowIcon(icon_info)#设置窗口的图标
+        # self.setFixedSize(1210, 705)# 设置窗口固定尺寸
         self.pushButton_quit.clicked.connect(self.quit)  # 点击ok，隐士存在该方法
 
         self.timer = QTimer(self)  # 初始化一个定时器
@@ -393,8 +410,6 @@ class Child(QDialog):
     def quit(self):  # 点击ok是发送内置信号
         self.timer.stop()
         self.close()
-
-
 
 
 if __name__ == '__main__':
